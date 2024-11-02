@@ -20,6 +20,7 @@ class Product(models.Model):
     closing_stock_value = models.DecimalField(max_digits=20, decimal_places=2, default=0)
     stock_balance = models.PositiveIntegerField(default=0, null=True) # Remaining stock
     created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='product_images/', null=True, blank=True)
 
     
     def save(self, *args, **kwargs):

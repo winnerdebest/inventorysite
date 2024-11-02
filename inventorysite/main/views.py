@@ -112,6 +112,7 @@ def add_product(request):
         category_id = request.POST.get('category_id')
         unit_price = Decimal(request.POST['unit_price'])  # Convert to Decimal
         stock_balance = int(request.POST['stock_balance'])
+        image = request.FILES.get('image')
 
         # Check if all required fields are filled
         if not product_name or not category_id or not unit_price:
@@ -131,6 +132,7 @@ def add_product(request):
                 category=category,
                 unit_price=unit_price,
                 stock_balance=stock_balance,
+                image=image,
             )
 
             messages.success(request, 'Product added successfully.')

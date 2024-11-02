@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="text-center mb-4">Add New Product</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">  <!-- Enable file upload -->
         {% csrf_token %}
 
         <!-- Product Name -->
@@ -29,9 +29,15 @@
         </div>
 
         <!-- Stock Balance -->
-        <div class="form-group">
-            <label for="stockBalance">Stock Balance</label>
+        <div class="mb-3">
+            <label for="stockBalance" class="form-label">Stock Balance</label>
             <input type="number" class="form-control" id="stockBalance" name="stock_balance" placeholder="Enter stock balance" required>
+        </div>
+
+        <!-- Product Image -->
+        <div class="mb-3">
+            <label for="productImage" class="form-label">Product Image</label>
+            <input type="file" class="form-control" id="productImage" name="image" accept="image/*">  <!-- Accept image files only -->
         </div>
 
         <!-- Submit Button -->
