@@ -1,0 +1,76 @@
+{% extends 'extends/sbase.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="text-center">Supervisor Dashboard</h1>
+
+    <!-- Sidebar with Requests -->
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Pending Requests Section -->
+            <h3>Pending Requests</h3>
+            {% if pending_requests %}
+                <ul class="list-group mb-4">
+                    {% for request in pending_requests %}
+                        <li class="list-group-item">
+                            <strong>{{ request.product.name }}</strong><br>
+                            Quantity Requested: {{ request.quantity_received }}<br>
+                            Date Requested: {{ request.date_received|date:"F j, Y" }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No pending requests.</p>
+            {% endif %}
+
+            <!-- Approved Requests Section -->
+            <h3>Approved Requests</h3>
+            {% if approved_requests %}
+                <ul class="list-group mb-4">
+                    {% for request in approved_requests %}
+                        <li class="list-group-item">
+                            <strong>{{ request.product.name }}</strong><br>
+                            Quantity Approved: {{ request.quantity_received }}<br>
+                            Approved By: {{ request.approved_by.username }}<br>
+                            Date Approved: {{ request.approved_date|date:"F j, Y" }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No approved requests.</p>
+            {% endif %}
+        </div>
+
+        <!-- Main Product List Section -->
+        <div class="col-md-8">
+            <h3>Product List</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Stock Balance</th>
+                        <th>Unit Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in all_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.stock_balance }}</td>
+                            <td>NGN{{ product.unit_price }}</td>
+                            <td>
+                                <a href="{% url 'request_purchase' product.id %}" class="btn btn-primary btn-sm">Request Purchase</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No products available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
