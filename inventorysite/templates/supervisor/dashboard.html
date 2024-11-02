@@ -1,75 +1,106 @@
 {% extends 'extends/sbase.html' %}
 
 {% block content %}
-<div class="container">
-    <h1 class="text-center">Supervisor Dashboard</h1>
+<div class="container my-5">
+    <h1 class="text-center mb-4">Supervisor Dashboard</h1>
 
-    <!-- Sidebar with Requests -->
     <div class="row">
-        <div class="col-md-4">
+        <!-- Sidebar with Requests -->
+        <div class="col-lg-4 mb-4">
             <!-- Pending Requests Section -->
-            <h3>Pending Requests</h3>
-            {% if pending_requests %}
-                <ul class="list-group mb-4">
-                    {% for request in pending_requests %}
-                        <li class="list-group-item">
-                            <strong>{{ request.product.name }}</strong><br>
-                            Quantity Requested: {{ request.quantity_received }}<br>
-                            Date Requested: {{ request.date_received|date:"F j, Y" }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No pending requests.</p>
-            {% endif %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Pending Requests</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_requests %}
+                        <ul class="list-group">
+                            {% for request in pending_requests %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ request.product.name }}</strong><br>
+                                        Quantity: {{ request.quantity_received }}<br>
+                                        <small class="text-muted">{{ request.date_received|date:"F j, Y" }}</small>
+                                    </div>
+                                    <span class="badge bg-warning text-white">Pending</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No pending requests.</p>
+                    {% endif %}
+                </div>
+            </div>
 
             <!-- Approved Requests Section -->
-            <h3>Approved Requests</h3>
-            {% if approved_requests %}
-                <ul class="list-group mb-4">
-                    {% for request in approved_requests %}
-                        <li class="list-group-item">
-                            <strong>{{ request.product.name }}</strong><br>
-                            Quantity Approved: {{ request.quantity_received }}<br>
-                            Approved By: {{ request.approved_by.username }}<br>
-                            Date Approved: {{ request.approved_date|date:"F j, Y" }}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No approved requests.</p>
-            {% endif %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Approved Requests</h5>
+                </div>
+                <div class="card-body">
+                    {% if approved_requests %}
+                        <ul class="list-group">
+                            {% for request in approved_requests %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ request.product.name }}</strong><br>
+                                        Quantity: {{ request.quantity_received }}<br>
+                                        Approved By: {{ request.approved_by.username }}<br>
+                                        <small class="text-muted">{{ request.approved_date|date:"F j, Y" }}</small>
+                                    </div>
+                                    <span class="badge bg-success text-white">Approved</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No approved requests.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <!-- Main Product List Section -->
-        <div class="col-md-8">
-            <h3>Product List</h3>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Stock Balance</th>
-                        <th>Unit Price</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in all_products %}
-                        <tr>
-                            <td>{{ product.name }}</td>
-                            <td>{{ product.stock_balance }}</td>
-                            <td>NGN{{ product.unit_price }}</td>
-                            <td>
-                                <a href="{% url 'request_purchase' product.id %}" class="btn btn-primary btn-sm">Request Purchase</a>
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5">No products available.</td>
-                        </tr>
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Product List by Category</h5>
+                </div>
+                <div class="card-body">
+                    {% for category in categories %}
+                        <div class="mb-4">
+                            <h6 class="text-primary">{{ category.name }}</h6>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Stock Balance</th>
+                                        <th>Unit Price</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in category.product_set.all %}
+                                        <tr>
+                                            <td>{{ product.name }}</td>
+                                            <td>{{ product.stock_balance }}</td>
+                                            <td>NGN {{ product.unit_price }}</td>
+                                            <td>
+                                                <a href="{% url 'request_purchase' product.id %}" class="btn btn-outline-primary btn-sm">
+                                                    Request Purchase
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No products available in this category.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>

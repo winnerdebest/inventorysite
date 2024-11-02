@@ -239,7 +239,7 @@ def add_stock_movement(request):
 @role_required('Supervisor')
 def supervisor_dashboard(request):
     # Fetch all products
-    all_products = Product.objects.all()
+    categories = Category.objects.prefetch_related('product_set').all()
 
     # Filter purchases by approval status and supervisor
     pending_requests = Purchase.objects.filter(supervisor=request.user, is_approved=False)
@@ -250,7 +250,7 @@ def supervisor_dashboard(request):
 
 
     context = {
-        'all_products': all_products,
+        'categories': categories,
         'pending_requests': pending_requests,
         'approved_requests': approved_requests,
         }

@@ -14,16 +14,16 @@
                     <div class="col-lg-4 col-md-6 mb-4">
                         <div class="card shadow-sm h-100">
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{% url 'product_purchases' product.id %}" class="text-decoration-none text-dark">
-                                        {{ product.name }}
-                                    </a>
-                                </h5>
-                                <p class="mb-1">Opening Balance: {{ product.opening_balance }}</p>
-                                <p class="mb-1">Unit Price: ${{ product.unit_price }}</p>
-                                <p class="mb-1">Stock Balance: {{ product.stock_balance }}</p>
-                                <p class="mb-1">Closing Stock Value: NGN{{ product.closing_stock_value }}</p>
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="mb-1"><strong>Stock Balance:</strong> {{ product.stock_balance }}</p>
+                                <p class="mb-1"><strong>Unit Price:</strong> NGN{{ product.unit_price }}</p>
+                                <p class="mb-1"><strong>Closing Stock Value:</strong> NGN{{ product.closing_stock_value }}</p>
                                 <small class="text-muted">Created on: {{ product.created_at|date:"F j, Y" }}</small>
+                                
+                                <!-- View Purchases Button -->
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'product_purchases' product.id %}" class="btn btn-outline-primary btn-sm">Product Details</a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -40,14 +40,14 @@
     <h2 class="mb-4">Vendors</h2>
     <div class="list-group mb-5">
         {% for vendor in vendors %}
-            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center shadow-sm">
                 <div>
                     <h5 class="mb-1">{{ vendor.name }}</h5>
                     <p class="mb-1">{{ vendor.contact_info }}</p>
                     <small class="text-muted">Created on: {{ vendor.created_at|date:"F j, Y" }}</small>
                 </div>
                 <span class="badge bg-primary rounded-pill">Vendor</span>
-            </a>
+            </div>
         {% empty %}
             <p class="text-muted">No vendors available.</p>
         {% endfor %}
