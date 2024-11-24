@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Category, Product, Vendor, Purchase, StockMovement
+from .models import Category, Product, Vendor, Purchase, StockMovement, DieselTracker
+from django.db import transaction
+
 from django.contrib import messages
 from decimal import Decimal
 from .decorators import role_required
@@ -88,22 +90,31 @@ def product_purchases(request, product_id):
         purchase_id = request.POST.get('purchase_id')
         purchase = get_object_or_404(Purchase, id=purchase_id)
 
-        # Approve the purchase
-        purchase.is_approved = True
-        purchase.approved_by = request.user
-        purchase.save()
+        if not purchase.is_approved:  # Approve the purchase only if not already approved
+            with transaction.atomic():  # Ensure atomicity of operations
+                # Update purchase approval
+                purchase.is_approved = True
+                purchase.approved_by = request.user
+                purchase.save()
 
-        messages.success(request, "Purchase approved successfully!")
+                # Perform stock calculations
+                product.stock_balance -= purchase.quantity_received
+                product.closing_stock_value = product.stock_balance * product.unit_price
+                product.save()  # Save updated stock values
+
+            messages.success(request, "Purchase approved successfully!")
+        else:
+            messages.warning(request, "This purchase is already approved.")
+
         return redirect('product_purchases', product_id=product_id)
 
     context = {
-        'product' : product,
-        'purchases' : purchases,
-        'stock_movements' : stock_movements,
+        'product': product,
+        'purchases': purchases,
+        'stock_movements': stock_movements,
     }
 
     return render(request, 'inventory_manager/product_purchases.html', context)
-
 @login_required
 @role_required('Inventory Manager')
 def add_product(request):
@@ -299,8 +310,20 @@ def request_purchase(request, product_id):
 
 
 
-def admin_dashboard(request):
-    return render(request, 'dashboard/admin_dashboard.html')
+#@login_required
+#@role_required('General Manager') 
+def general_manager_dashboard(request):
+    # Fetch all the transactions
+    purchases = Purchase.objects.select_related('product', 'vendor', 'approved_by').all()
+    stock_movements = StockMovement.objects.select_related('product').all()
+
+    context = {
+        'purchases': purchases,
+        'stock_movements': stock_movements,
+    }
+
+    return render(request, 'general_manager/dashboard.html', context)
+
 
 
 
@@ -308,3 +331,31 @@ def admin_dashboard(request):
 
 def manager_dashboard(request):
     return render(request, 'dashboard/manager_dashboard.html')
+
+
+
+
+# Diesel Tracker 
+@login_required
+@role_required('Inventory Manager')
+def diesel_list(request):
+    diesel_entries = DieselTracker.objects.all().order_by('-date_of_request')  # Fetch and order by most recent
+    return render(request, 'inventory_manager/diesel_list.html', {'diesel_entries': diesel_entries})
+
+
+@login_required
+@role_required('Procurement')
+def procurement_dashboard(request):
+    categories = Category.objects.prefetch_related('product_set').all()
+    vendors = Vendor.objects.all()
+    purchases = Purchase.objects.select_related('product', 'vendor').all()
+
+
+    context = {
+        'categories': categories,
+        'vendors': vendors,
+        'purchases': purchases,
+    }
+    return render(request, 'procurement/dashboard.html', context)
+
+

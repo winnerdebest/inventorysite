@@ -5,6 +5,8 @@ urlpatterns = [
     # Login and Log out URLS
     path('', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    
+    path('general_manager_dashboard/', views.general_manager_dashboard, name='general_manager_dashboard'),
 
     # Inventory Manager URLs
     path('edit_product/<int:product_id>/', views.edit_product, name='edit_product'),
@@ -20,6 +22,14 @@ urlpatterns = [
     # Supervisors Page
     path('supervisor_dashboard/', views.supervisor_dashboard, name='supervisor_dashboard'),
     path('request_purchase/<int:product_id>/', views.request_purchase, name='request_purchase'),
+    # End of Supervisors Page
+
+
+    path('procurement_dashboard/', views.procurement_dashboard, name='procurement_dashboard'),
+    # Diesel Manager URLs
+     path('diesel/', views.diesel_list, name='diesel_list'),
+
+
 ]
     
 

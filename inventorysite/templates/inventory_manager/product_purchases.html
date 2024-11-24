@@ -9,7 +9,6 @@
         <div class="card-body">
             <h5 class="card-title">Product Information</h5>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item"><strong>Opening Balance:</strong> {{ product.opening_balance }}</li>
                 <li class="list-group-item"><strong>Unit Price:</strong> NGN{{ product.unit_price }}</li>
                 <li class="list-group-item"><strong>Stock Balance:</strong> {{ product.stock_balance }}</li>
                 <li class="list-group-item"><strong>Closing Stock Value:</strong> NGN{{ product.closing_stock_value }}</li>
@@ -18,70 +17,43 @@
         </div>
     </div>
 
-    <div class="row">
-        <!-- Purchases Section -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-body">
-                    <h2 class="card-title">Purchases</h2>
-                    <table class="table table-hover table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Vendor</th>
-                                <th>Quantity Received</th>
-                                <th>Amount Received</th>
-                                <th>Date Received</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for purchase in purchases %}
-                                <tr>
-                                    <td>{{ purchase.vendor.name }}</td>
-                                    <td>{{ purchase.quantity_received }}</td>
-                                    <td>NGN{{ purchase.amount_received }}</td>
-                                    <td>{{ purchase.date_received|date:"F j, Y" }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="4" class="text-center">No purchases have been made for this product.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
 
         <!-- Stock Movements Section -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-body">
-                    <h2 class="card-title">Stock Movements</h2>
-                    <table class="table table-hover table-bordered">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Quantity Issued</th>
-                                <th>Quantity Returned</th>
-                                <th>Location Received</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for movement in stock_movements %}
+        <div class="row">
+            <!-- Stock Movements Section -->
+            <div class="col-12 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-body">
+                        <h2 class="card-title">Stock Movements</h2>
+                        <table class="table table-hover table-bordered">
+                            <thead class="table-light">
                                 <tr>
-                                    <td>{{ movement.quantity_issued }}</td>
-                                    <td>{{ movement.quantity_returned }}</td>
-                                    <td>{{ movement.location_received }}</td>
-                                    <td>{{ movement.date|date:"F j, Y" }}</td>
+                                    <th>Quantity Issued</th>
+                                    <th>Quantity Returned</th>
+                                    <th>Location Received</th>
+                                    <th>Date</th>
                                 </tr>
-                            {% empty %}
-                                <tr><td colspan="4" class="text-center">No stock movements have been recorded for this product.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for movement in stock_movements %}
+                                    <tr>
+                                        <td>{{ movement.quantity_issued }}</td>
+                                        <td>{{ movement.quantity_returned }}</td>
+                                        <td>{{ movement.location_received }}</td>
+                                        <td>{{ movement.date|date:"F j, Y" }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No stock movements have been recorded for this product.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
+        
     <!-- Request Section -->
     <h2>Request for {{ product.name }}</h2>
     <table class="table table-hover table-bordered">
