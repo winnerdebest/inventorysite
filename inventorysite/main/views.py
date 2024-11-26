@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Category, Product, Vendor, Purchase, StockMovement, DieselTracker
+from .models import Category, Product, Vendor, Purchase, StockMovement, DieselTracker, ProductEditHistory
 from django.db import transaction
 
 from django.contrib import messages
@@ -40,7 +40,9 @@ def login_view(request):
             if user.groups.filter(name="General manager").exists():
                 return redirect('general_manager_dashboard')  # Replace with the actual view name
             elif user.groups.filter(name="Inventory Manager").exists():
-                return redirect('inventory_dashboard')  # Replace with the actual view name
+                return redirect('inventory_dashboard')
+            elif user.groups.filter(name="Procurement").exists():
+                return redirect('procurement_dashboard')  # Replace with the actual view name
             elif user.groups.filter(name="Supervisor").exists():
                 return redirect('supervisor_dashboard')  # Replace with the actual view name
             else:
@@ -78,33 +80,65 @@ def inventory_dashboard(request):
     }
     return render(request, 'inventory_manager/dashboard.html', context)
 
+from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.auth.decorators import login_required
+from .models import Product, Purchase, StockMovement, ProductEditHistory
+from .decorators import role_required
+
 @login_required
 @role_required('Inventory Manager')
 def product_purchases(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     purchases = Purchase.objects.filter(product=product).select_related('vendor')
-
     stock_movements = StockMovement.objects.filter(product=product)
-    
+
+    # Get unapproved ProductEditHistory entries
+    edit_history_entries = product.productedithistory_set.filter(is_approved=False)
+
     if request.method == "POST":
-        purchase_id = request.POST.get('purchase_id')
-        purchase = get_object_or_404(Purchase, id=purchase_id)
+        # Approving a purchase
+        if 'purchase_id' in request.POST:
+            purchase_id = request.POST.get('purchase_id')
+            purchase = get_object_or_404(Purchase, id=purchase_id)
 
-        if not purchase.is_approved:  # Approve the purchase only if not already approved
-            with transaction.atomic():  # Ensure atomicity of operations
-                # Update purchase approval
-                purchase.is_approved = True
-                purchase.approved_by = request.user
-                purchase.save()
+            if not purchase.is_approved:  # Approve the purchase only if not already approved
+                with transaction.atomic():  # Ensure atomicity of operations
+                    # Update purchase approval
+                    purchase.is_approved = True
+                    purchase.approved_by = request.user
+                    purchase.save()
 
-                # Perform stock calculations
-                product.stock_balance -= purchase.quantity_received
-                product.closing_stock_value = product.stock_balance * product.unit_price
-                product.save()  # Save updated stock values
+                    # Perform stock calculations
+                    product.stock_balance -= purchase.quantity_received
+                    product.closing_stock_value = product.stock_balance * product.unit_price
+                    product.save()  # Save updated stock values
 
-            messages.success(request, "Purchase approved successfully!")
-        else:
-            messages.warning(request, "This purchase is already approved.")
+                messages.success(request, "Purchase approved successfully!")
+            else:
+                messages.warning(request, "This purchase is already approved.")
+
+        # Approving ProductEditHistory entries
+        elif 'history_id' in request.POST:
+            history_id = request.POST.get('history_id')
+            history = get_object_or_404(ProductEditHistory, id=history_id)
+
+            if not history.is_approved:  # Approve the edit history only if not already approved
+                with transaction.atomic():  # Ensure atomicity of operations
+                    # Update ProductEditHistory approval status
+                    history.is_approved = True
+                    history.approved_by = request.user
+                    history.save()
+
+                    # Apply changes to the product
+                    product.unit_price = history.new_unit_price
+                    product.stock_balance = history.new_stock_balance
+                    product.save()  # Save the product with the new values
+
+                messages.success(request, "Product edit history approved successfully!")
+            else:
+                messages.warning(request, "This product edit history entry is already approved.")
 
         return redirect('product_purchases', product_id=product_id)
 
@@ -112,9 +146,11 @@ def product_purchases(request, product_id):
         'product': product,
         'purchases': purchases,
         'stock_movements': stock_movements,
+        'edit_history_entries': edit_history_entries,  # Pass unapproved history entries to the template
     }
 
     return render(request, 'inventory_manager/product_purchases.html', context)
+
 @login_required
 @role_required('Inventory Manager')
 def add_product(request):
@@ -335,13 +371,8 @@ def manager_dashboard(request):
 
 
 
-# Diesel Tracker 
-@login_required
-@role_required('Inventory Manager')
-def diesel_list(request):
-    diesel_entries = DieselTracker.objects.all().order_by('-date_of_request')  # Fetch and order by most recent
-    return render(request, 'inventory_manager/diesel_list.html', {'diesel_entries': diesel_entries})
 
+# Procurement Dashboard
 
 @login_required
 @role_required('Procurement')
@@ -359,3 +390,49 @@ def procurement_dashboard(request):
     return render(request, 'procurement/dashboard.html', context)
 
 
+
+
+def procurement_edit_product(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+
+    if request.method == 'POST':
+        # Get the new unit_price and stock increment values from the form
+        unit_price = request.POST.get('unit_price')  # new unit price
+        stock_increment = int(request.POST.get('stock_increment', 0))  # new stock increment
+
+        # Record the history without updating the product
+        if unit_price != str(product.unit_price) or stock_increment != 0:
+            # Create a new history record before saving changes
+            ProductEditHistory.objects.create(
+                product=product,
+                old_stock_balance=product.stock_balance,
+                new_stock_balance=product.stock_balance + stock_increment,
+                old_unit_price=product.unit_price,
+                new_unit_price=unit_price,
+                edited_by=request.user,  # Set the user if logged in
+            )
+
+        # Redirect to another view (e.g., product list)
+        return redirect('procurement_dashboard')  # Update this to the correct URL name for your product list page
+
+    return render(request, 'procurement/add_balance.html', {'product': product})
+
+
+# End Of Procurement Dashboard
+
+
+#Coordinators Dashboard
+@login_required
+@role_required('Procurement')
+def coordinator_dashboard(request):
+    categories = Category.objects.prefetch_related('product_set').all()
+    vendors = Vendor.objects.all()
+    purchases = Purchase.objects.select_related('product', 'vendor').all()
+
+
+    context = {
+        'categories': categories,
+        'vendors': vendors,
+        'purchases': purchases,
+    }
+    return render(request, 'coordinator/dashboard.html', context)

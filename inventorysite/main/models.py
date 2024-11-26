@@ -32,6 +32,23 @@ class Product(models.Model):
         return self.name
     
 
+
+class ProductEditHistory(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    old_stock_balance = models.PositiveIntegerField()
+    new_stock_balance = models.PositiveIntegerField()
+    old_unit_price = models.DecimalField(max_digits=100, decimal_places=2)
+    new_unit_price = models.DecimalField(max_digits=100, decimal_places=2)
+    edited_at = models.DateTimeField(auto_now_add=True)
+    edited_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    is_approved = models.BooleanField(default=False)  # To track approval status
+    approved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='approver')  # Who approved
+
+
+    def __str__(self):
+        return f"Edit History for {self.product.name} at {self.edited_at}"
+
+
 #Vendor Model
 class Vendor(models.Model):
     name = models.CharField(max_length=255)

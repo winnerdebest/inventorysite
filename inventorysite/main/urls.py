@@ -25,9 +25,12 @@ urlpatterns = [
     # End of Supervisors Page
 
 
+    # Procurement Page
+    path('product/<int:product_id>/edit/', views.procurement_edit_product, name='procurement_edit_product'),
     path('procurement_dashboard/', views.procurement_dashboard, name='procurement_dashboard'),
-    # Diesel Manager URLs
-     path('diesel/', views.diesel_list, name='diesel_list'),
+    # Coordinators URLS
+    path('coordinator_dashboard/', views.coordinator_dashboard, name='coordinator_dashboard'),
+
 
 
 ]

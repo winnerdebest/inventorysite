@@ -54,6 +54,51 @@
             </div>
         </div>
         
+
+
+     <!-- ProductEditHistory Approval Section -->
+     <h2>Approve Stocks</h2>
+     <table class="table table-hover table-bordered">
+         <thead class="table-light">
+             <tr>
+                 <th>Old Stock Balance</th>
+                 <th>New Stock Balance</th>
+                 <th>Old Unit Price</th>
+                 <th>New Unit Price</th>
+                 <th>Date Edited</th>
+                 <th>Edited By</th>
+                 <th>Approval</th>
+             </tr>
+         </thead>
+         <tbody>
+             {% for history in product.productedithistory_set.all %}
+                 <tr>
+                     <td>{{ history.old_stock_balance }}</td>
+                     <td>{{ history.new_stock_balance }}</td>
+                     <td>NGN{{ history.old_unit_price }}</td>
+                     <td>NGN{{ history.new_unit_price }}</td>
+                     <td>{{ history.edited_at|date:"F j, Y" }}</td>
+                     <td>{% if history.edited_by %}{{ history.edited_by.username }}{% else %}Unknown{% endif %}</td>
+
+                     <td>
+                         {% if not history.is_approved %}
+                             <form method="post" class="d-inline">
+                                 {% csrf_token %}
+                                 <input type="hidden" name="history_id" value="{{ history.id }}">
+                                 <button type="submit" class="btn btn-success btn-sm">Recieved</button>
+                             </form>
+                         {% else %}
+                             <span class="text-success">Recieved by {{ history.approved_by.username }}</span>
+                         {% endif %}
+                     </td>
+                 </tr>
+             {% empty %}
+                 <tr><td colspan="7" class="text-center">No product edit history available for approval.</td></tr>
+             {% endfor %}
+         </tbody>
+     </table>
+
+
     <!-- Request Section -->
     <h2>Request for {{ product.name }}</h2>
     <table class="table table-hover table-bordered">
@@ -95,7 +140,6 @@
     
     <!-- Edit and Delete Buttons -->
     <div class="text-center mb-4">
-        <a href="{% url 'edit_product' product.id %}" class="btn btn-warning btn-lg me-2">Add Stock Balance</a>
         <a href="{% url 'add_stock_movement' %}?product={{ product.id }}" class="btn btn-success btn-lg me-2">Add Stock Movement</a>
         <form action="#" method="post" class="d-inline">
             {% csrf_token %}
