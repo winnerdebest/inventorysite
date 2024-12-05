@@ -74,6 +74,7 @@ WSGI_APPLICATION = 'inventorysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -82,10 +83,9 @@ DATABASES = {
 }
 
 
-POSTGRESS_LOCALLY = False
+POSTGRESS_LOCALLY = True
 if ENVIRONMENT == 'production' or POSTGRESS_LOCALLY == True:
-    DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'))
-
+        DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'))
 
 
 # Password validation
